@@ -30,10 +30,6 @@ def getTenantInfo():
         line_count = 0
         tenant_list = []
         for row in csv_reader:
-            if line_count == 0:
-                print(f'Column names are {", ".join(row)}')
-                line_count += 1
-                continue
             line = {"name": row.get("name"),"iban": row.get("iban"),"rent": float(row.get("rent"))}
             tenant_list.append(line)
             line_count += 1
@@ -42,13 +38,19 @@ def getTenantInfo():
 transactions = parseTransactions()
 tenant_info = getTenantInfo()
 
-def checkRent():
+def checkRent(print_monthly):
+    overall_payments = 0
     for tenant in tenant_info: 
         payments = 0
         for transaction in transactions:
-            if tenant['iban'] in transaction.get('iban') and math.isclose(tenant['rent'], transaction.get('amount'), rel_tol=1e-1):
-                payments += 1
-                print(transaction.get('name'), "payed on", transaction.get('date'))
+            if tenant['iban'] in transaction.get('iban'):
+                if math.isclose(tenant['rent'], transaction.get('amount'), rel_tol=1e-1):
+                    payments += 1
+                    if print_monthly: 
+                       print(transaction.get('name'), "payed on", transaction.get('date'))
         print(tenant.get('name'), " payed ", payments, " times")
+        if payments > 0:
+            overall_payments += 1
+    print(overall_payments, "of ", len(tenant_info), " payed")        
 
-checkRent()        
+checkRent(False)        
